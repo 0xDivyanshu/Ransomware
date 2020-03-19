@@ -1,4 +1,4 @@
-# This is JAVA based Ransomware which will require you to send the random secret to attacker website upon completion of payment which will send you the private Key to decrypt your files
+# JAVA based Ransomware
 
 ## Technicalities
 1. There is a launcher GUI made in java which should be run by victim to decrypt his system with the private key given to him.
