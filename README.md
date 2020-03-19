@@ -1,4 +1,4 @@
-#This is JAVA based Ransomware which will require you to send the random secret to attacker website upon completion of payment which will send you the private Key to decrypt your files
+# This is JAVA based Ransomware which will require you to send the random secret to attacker website upon completion of payment which will send you the private Key to decrypt your files
 
 ## Technicalities
 1. There is a launcher GUI made in java which should be run by victim to decrypt his system with the private key given to him.
@@ -7,4 +7,4 @@
 4. In case countdown is experied, he will forever loose his files as his secret and equivalent private key will be earsed from database automatically.He should also make sure to switch on the PC continously for 48 hr i.e duration of countdown.
 5. If payment is made, he will be able to decrypt his files, the sole purpose of Ransomware.
 
-##Please Note : This is me trying to learn JAVA. Don't be a dick and use it anywhere. I am not responsible for your actions and choices.
+#### Please Note : This is me trying to learn JAVA. Don't be a dick and use it anywhere. I am not responsible for your actions and choices.
