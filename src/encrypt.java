@@ -62,7 +62,9 @@ class secret {
 		}
 		in.close();
 		String tmp = response.toString();
-		String pubKey = tmp.replaceAll("-","").replaceAll("BEGIN PUBLIC KEY","").replaceAll("END PUBLIC KEY","");
+		String[] details = tmp.split("@",2);
+		String identifer = details[0];
+		String pubKey = details[1].replaceAll("-","").replaceAll("BEGIN PUBLIC KEY","").replaceAll("END PUBLIC KEY","");
 		//System.out.println(pubKey);
 		byte[] publickBytes = Base64.getDecoder().decode(pubKey);
 		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publickBytes);

