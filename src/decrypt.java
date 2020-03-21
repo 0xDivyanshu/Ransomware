@@ -24,8 +24,6 @@ import java.nio.file.*;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.management.RuntimeErrorException;
-import java.io.IOException;
-import java.util.stream.Stream;
 
 class secret {
 	KeyPair secret(){

