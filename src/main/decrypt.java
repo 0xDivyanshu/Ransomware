@@ -120,7 +120,7 @@ class decrypt {
 		}
 		in.close();
 		String ans  =response.toString();
-		System.out.println(ans);
+		//System.out.println(ans);
 		if(ans.equals("Pay the ransom")){
 			System.out.println("Pay the ransom first!");
 			System.exit(0);

@@ -127,7 +127,7 @@ class RansomwareActivate{
 		for(i=0;i<50;i++){
 			supersecretKey=supersecretKey+chars.charAt(r.nextInt(chars.length()));
 		}
-		System.out.println(supersecretKey);
+		//System.out.println(supersecretKey);
 		return supersecretKey;
 	}
 

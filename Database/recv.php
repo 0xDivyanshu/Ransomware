@@ -1,4 +1,5 @@
 <?php
+include('update_db.php');
 
 function Connection(){
 	//Configuration of database
@@ -54,6 +55,7 @@ function returnDecrypted($dbconn,$key,$id){
 		$res = openssl_get_privatekey($private_key);		
 		openssl_private_decrypt(base64_decode($resStr),$newsource,$res);
 		echo "$newsource";
+		update_database($id);
 		return 1;
 
 	}
