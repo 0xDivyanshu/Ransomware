@@ -13,4 +13,13 @@ Just run install.sh file and everything will be setup autmatically for you. Enjo
 
 **Note : This is not ready yet. In Devlopment Stage!**
 
+## Compilation 
+Go to src/main directory and type below lines
+```bash
+javac -d ../class encrypt.java
+javac -d ../class decrypt.java
+cd ../launcher && javac -d ../class -cp ../class launcher.java
+cd ../class && java launcher
+```
+
 #### Please Note : This is me trying to learn JAVA. Don't be a dick and use it anywhere. I am not responsible for your actions and choices.

