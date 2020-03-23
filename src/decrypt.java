@@ -78,7 +78,7 @@ class RansomwareDeactivate{
 				f.delete();
 			}
 			catch (Exception e){
-				System.out.println(e);
+				continue;
 			}
 		}
 	}		
