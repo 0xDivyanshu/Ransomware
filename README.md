@@ -11,4 +11,6 @@
 ## Installation
 Just run install.sh file and everything will be setup autmatically for you. Enjoy ! :)
 
+**Note : This is not ready yet. In Devlopment Stage!**
+
 #### Please Note : This is me trying to learn JAVA. Don't be a dick and use it anywhere. I am not responsible for your actions and choices.
