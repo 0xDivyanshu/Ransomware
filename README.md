@@ -8,7 +8,7 @@
 5. In case countdown is experied, he will forever loose his files as his secret and equivalent private key will be earsed from database automatically.He should also make sure to switch on the PC continously for 48 hr i.e duration of countdown.
 6. If payment is made, he will be able to decrypt his files, the sole purpose of Ransomware.
 
-##Installation
+## Installation
 Just run install.sh file and everything will be setup autmatically for you. Enjoy ! :)
 
 #### Please Note : This is me trying to learn JAVA. Don't be a dick and use it anywhere. I am not responsible for your actions and choices.
