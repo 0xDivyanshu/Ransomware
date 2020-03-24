@@ -125,6 +125,7 @@ class DecryptListener implements ActionListener{
         try{
             decrypt dec = new decrypt();
             dec.validatePayment();
+            dec.cleanup();
             JFrame frame3 = new JFrame("Decrypton Done!");
             frame3.getContentPane().setBackground(Color.GREEN);
             frame3.setDefaultCloseOperation(frame3.DISPOSE_ON_CLOSE);
