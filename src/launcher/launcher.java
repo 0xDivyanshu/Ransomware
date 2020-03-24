@@ -117,7 +117,7 @@ class DecryptListener implements ActionListener{
             decrypt dec = new decrypt();
             dec.validatePayment();
         }
-        catch (IOException err){
+        catch (Exception err){
             err.printStackTrace();
         }
     }

