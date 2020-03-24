@@ -16,9 +16,9 @@ Just run install.sh file and everything will be setup autmatically for you. Enjo
 ## Compilation 
 Go to src/main directory and type below lines
 ```bash
-javac -d ../class encrypt.java
-javac -d ../class decrypt.java
-cd ../launcher && javac -d ../class -cp ../class launcher.java
+javac -d ../class/main encrypt.java
+javac -d ../class/launcher decrypt.java
+cd ../launcher && javac -d ../class/launcher -cp ../class/launcher launcher.java
 cd ../class && java launcher
 ```
 
