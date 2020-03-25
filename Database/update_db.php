@@ -6,11 +6,11 @@ function update_database($id){
 		//An error occured
 		exit;
 	}
-	$query = "SELECT payment_status from ransomware_details where identifier='$id'";
+	$query = "SELECT payment_status from ransomware_details where id='$id'";
 	$result = pg_query($dbconn,$query);
 	$tmp = pg_fetch_row($result)[0];
 	if( $tmp == 'Yes' ){
-		$query = "DELETE from ransomware_detaisl where identifier='$id'";
+		$query = "DELETE from ransomware_details where id='$id'";
 		$result = pg_query($dbconn,$query);
 		$tmp = pg_fetch_row($result);
 	}

