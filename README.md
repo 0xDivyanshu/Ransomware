@@ -1,7 +1,7 @@
 # JAVA based Ransomware
 
 ## Technicalities
-1. There is a launcher GUI made in java which should be run by victim to decrypt his system with the private key given to him.
+1. There is a launcher GUI made in java which should be run by victim to decrypt his system.
 2. We will be using psql database to store the random secret identifier key to identity the user and to automate the process on sending the AES encryption key once payment conformation is recieved.
 3. We are using AES and RSA based hybrid encryption to encrypt the file system. Once encryted victim will be shipped with a launcher file which will only run on his system.
 4. Randomly generated AES key of 50 character is used to encrtpt all the files and that AES key is then encrypted with the public key of MASTER RSA key pair and stored in key.enc file. Once user clicks decrypts button, a GET request will be made with content of key.enc and identifier which will be checked against payment status and if paid, the content will be then decrypted with the private Key of the server and plain AES key will be sent back to victim.
