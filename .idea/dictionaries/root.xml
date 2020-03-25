@@ -3,6 +3,8 @@
     <words>
       <w>hmac</w>
       <w>pbkdf</w>
+      <w>pkcs</w>
+      <w>ransomware</w>
     </words>
   </dictionary>
 </component>

