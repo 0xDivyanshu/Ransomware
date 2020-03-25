@@ -175,6 +175,8 @@ class encrypt {
 			key_aes = activate();
 			sec.encryptAESkey(key_aes,"/tmp/tmp/key.enc");
 			sec.encryptAESkey(iden,"/tmp/tmp/id.enc");
+			String[] tmp = {"tmp","qw"};
+			launcher.main(tmp);
 		}
 	}
 }

