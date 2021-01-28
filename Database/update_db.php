@@ -16,7 +16,7 @@ function update_database($id){
 	}
 	else
 	{
-		echo "To: Hacker who is trying to screw up database. Don't be a dick.It will remove record of victim forever from database.Victim will suffer.Use your empty brain!";
+		echo "To: Hacker who is trying to screw up database.It will remove record of victim forever from database.Victim will suffer.Use your empty brain!";
 	}
 }
 ?>
